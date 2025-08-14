@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, View } from "react-native";
+import { getTheme } from "@/themes/theme";
+import { ScrollView, StyleSheet, View, useColorScheme } from "react-native";
 
 import DailyCard from "@/components/DailyCard";
 import DateSelector from "@/components/DateSelector";
@@ -21,8 +22,11 @@ const dailyObjectives = [
 ]
 
 export default function Index() {
+  const colorScheme = useColorScheme();
+  const theme = getTheme(colorScheme);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <DateSelector />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {dailyObjectives.map((obj, idx) => (
@@ -36,7 +40,6 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
   },
   header: {
     fontSize: 24,
