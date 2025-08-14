@@ -1,4 +1,3 @@
-import { Link } from 'expo-router';
 import { Text, View } from "react-native";
 
 export default function Index() {
@@ -10,11 +9,7 @@ export default function Index() {
 		alignItems: "center",
 	  }}
 	>
-		<Link href="/">
-	  		<Text style={{color: 'blue', textDecorationLine: 'underline'}}>
-        		Go back to Home screen!
-			</Text>
-    	</Link>
+	  <Text>Hobbies Screen.</Text>
 	</View>
   );
 }
