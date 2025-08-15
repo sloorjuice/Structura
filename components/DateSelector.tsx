@@ -1,109 +1,57 @@
 import { getTheme } from "@/themes/theme";
 import * as Haptics from "expo-haptics";
-import { useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from "react-native";
-import { PanGestureHandler, PanGestureHandlerGestureEvent, State } from "react-native-gesture-handler";
 
 interface DateSelectorProps {
-    onDateChange?: (date: Date) => void;
+    date: Date;
+    onDateChange: (date: Date) => void;
 }
 
-export default function DateSelector({ onDateChange }: DateSelectorProps) {
+// Helper to compare dates without being affected by time
+const areDatesOnSameDay = (d1: Date, d2: Date) =>
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+
+export default function DateSelector({ date, onDateChange }: DateSelectorProps) {
     const colorScheme = useColorScheme();
     const theme = getTheme(colorScheme);
 
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const startDateRef = useRef<Date>(selectedDate);
-    const lastDayDifference = useRef(0);
-    const dayChangeThreshold = 30; // Pixels needed to change one day
+    const isToday = areDatesOnSameDay(date, new Date());
 
     const handleDateChange = (newDate: Date) => {
-        setSelectedDate(newDate);
-        onDateChange?.(newDate);
-        // Haptic feedback on date change
+        onDateChange(newDate);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     };
 
     const goToPreviousDay = () => {
-        const previousDay = new Date(selectedDate);
-        previousDay.setDate(previousDay.getDate() - 1);
+        const previousDay = new Date(date);
+        previousDay.setDate(date.getDate() - 1);
         handleDateChange(previousDay);
     };
 
     const goToNextDay = () => {
-        if (!isToday()) {
-            const nextDay = new Date(selectedDate);
-            nextDay.setDate(nextDay.getDate() + 1);
+        if (!isToday) {
+            const nextDay = new Date(date);
+            nextDay.setDate(date.getDate() + 1);
             handleDateChange(nextDay);
         }
     };
 
-    const formatDateDisplay = (date: Date) => {
+    const formatDateDisplay = (dateToFormat: Date) => {
         const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
 
-        // Reset time components for accurate comparison
-        const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-
-        if (dateOnly.getTime() === todayOnly.getTime()) {
-            return "Today";
-        } else if (dateOnly.getTime() === yesterdayOnly.getTime()) {
-            return "Yesterday";
-        } else {
-            return date.toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
-        }
+        if (areDatesOnSameDay(dateToFormat, today)) return "Today";
+        if (areDatesOnSameDay(dateToFormat, yesterday)) return "Yesterday";
+        
+        return dateToFormat.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
     };
-
-    const isToday = () => {
-        const today = new Date();
-        const dateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        return dateOnly.getTime() === todayOnly.getTime();
-    };
-
-    const onGestureEvent = (event: PanGestureHandlerGestureEvent) => {
-        const { translationX } = event.nativeEvent;
-        const dayDifference = Math.floor(translationX / dayChangeThreshold);
-
-        if (dayDifference !== lastDayDifference.current) {
-            let newDate = new Date(startDateRef.current);
-            newDate.setDate(startDateRef.current.getDate() - dayDifference);
-
-            // Don't allow future dates
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            newDate.setHours(0, 0, 0, 0);
-
-            if (newDate > today) {
-                newDate = today;
-            }
-
-            if (newDate.getTime() !== selectedDate.getTime()) {
-                handleDateChange(newDate);
-            }
-            lastDayDifference.current = dayDifference;
-        }
-    };
-
-    const onHandlerStateChange = (event: any) => {
-        const { state } = event.nativeEvent;
-        if (state === State.BEGAN) {
-            startDateRef.current = selectedDate;
-            lastDayDifference.current = 0;
-        }
-        if (state === State.END || state === State.CANCELLED || state === State.FAILED) {
-            lastDayDifference.current = 0;
-        }
-    };
-
-    const formatted = formatDateDisplay(selectedDate);
 
     return (
         <View style={styles.container}>
@@ -111,26 +59,20 @@ export default function DateSelector({ onDateChange }: DateSelectorProps) {
                 <Text style={[styles.arrow, { color: theme.colors.text }]}>‹</Text>
             </TouchableOpacity>
             
-            <PanGestureHandler
-                onGestureEvent={onGestureEvent}
-                onHandlerStateChange={onHandlerStateChange}
-            >
-                <View style={styles.swipeArea}>
-                    <Text style={[styles.dateText, { color: theme.colors.text, ...theme.fonts.medium }]}>
-                        {formatted}
-                    </Text>
-                </View>
-            </PanGestureHandler>
+            <View style={styles.dateDisplay}>
+                <Text style={[styles.dateText, { color: theme.colors.text, ...theme.fonts.medium }]}>
+                    {formatDateDisplay(date)}
+                </Text>
+            </View>
             
             <TouchableOpacity 
                 onPress={goToNextDay} 
-                style={[styles.arrowButton, isToday() && styles.disabledButton]}
-                disabled={isToday()}
+                style={[styles.arrowButton, isToday && styles.disabledButton]}
+                disabled={isToday}
             >
-                <Text style={[
-                    styles.arrow, 
-                    { color: isToday() ? theme.colors.text + '40' : theme.colors.text }
-                ]}>›</Text>
+                <Text style={[styles.arrow, { color: isToday ? theme.colors.text + '40' : theme.colors.text }]}>
+                    ›
+                </Text>
             </TouchableOpacity>
         </View>
     );
@@ -140,17 +82,17 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "space-between",
         marginVertical: 6,
+        paddingHorizontal: 16,
     },
     dateText: {
         textAlign: "center",
         fontSize: 18,
     },
-    swipeArea: {
-        flex: 1,
+    dateDisplay: {
         paddingVertical: 10,
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
     },
     arrowButton: {
         padding: 4,
