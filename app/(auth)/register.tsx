@@ -90,7 +90,7 @@ export default function RegisterScreen() {
     
     try {
       await signUp(email, password, name);
-      router.replace('/(auth)/verify-email');
+      router.replace('/(auth)/daily-list-setup'); // <-- Change this line
     } catch (error: any) {
       console.error('Registration error:', error);
       Alert.alert(

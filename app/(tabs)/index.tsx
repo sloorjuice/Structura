@@ -1,27 +1,13 @@
+import { useAuth } from "@/contexts/AuthContext";
 import { getTheme } from "@/themes/theme";
+import { db } from "@/utils/firebase";
 import * as Haptics from "expo-haptics"; // 1. Import Haptics
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import { collection, getDocs } from "firebase/firestore";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, RefreshControl, ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
 
 import DailyCard from "@/components/DailyCard";
 import DateSelector from "@/components/DateSelector";
-
-// Mock Data with unique IDs
-const dailyObjectives = [
-  { id: "breakfast", title: "Eat Breakfast" },
-  { id: "brush-teeth-morning", title: "Brush Teeth (Morning)" },
-  { id: "exercises", title: "Exercises" },
-  { id: "shower-morning", title: "Shower (Morning)" },
-  { id: "meditation", title: "Meditate" },
-  { id: "journal-morning", title: "Journal – Plan Your Day" },
-  { id: "hobby-morning", title: "Work on a Hobby (Morning)" },
-  { id: "lunch", title: "Eat Lunch" },
-  { id: "hobby-afternoon", title: "Work on a Hobby (Afternoon)" },
-  { id: "dinner", title: "Eat Dinner" },
-  { id: "journal-evening", title: "Journal – Reflect on Your Day" },
-  { id: "hobby-evening", title: "Work on a Hobby (Evening)" },
-  { id: "brush-teeth-night", title: "Brush Teeth (Night)" },
-];
 
 // Helper to get a string key for a date (YYYY-MM-DD)
 const getDateKey = (date: Date): string => {
@@ -43,11 +29,84 @@ const generateDateRange = (start: Date, end: Date): Date[] => {
   return range;
 };
 
+// Add ALL_DAILY_ITEMS here or import from a shared file if you prefer
+const ALL_DAILY_ITEMS = [
+  { id: "breakfast", title: "Eat Breakfast" },
+  { id: "brush-teeth-morning", title: "Brush Teeth (Morning)" },
+  { id: "exercises-morning", title: "Exercises (Morning)" },
+  { id: "shower-morning", title: "Shower (Morning)" },
+  { id: "meditation", title: "Meditate" },
+  { id: "journal-morning", title: "Journal – Plan Your Day" },
+  { id: "hobby-morning", title: "Work on a Hobby (Morning)" },
+  { id: "lunch", title: "Eat Lunch" },
+  { id: "brush-teeth-afternoon", title: "Brush Teeth (Afternoon)" },
+  { id: "hobby-afternoon", title: "Work on a Hobby (Afternoon)" },
+  { id: "exercises-afternoon", title: "Exercises (Afternoon)" },
+  { id: "dinner", title: "Eat Dinner" },
+  { id: "shower-night", title: "Shower (Night)" },
+  { id: "journal-evening", title: "Journal – Reflect on Your Day" },
+  { id: "hobby-evening", title: "Work on a Hobby (Evening)" },
+  { id: "brush-teeth-night", title: "Brush Teeth (Night)" },
+];
+
 export default function Index() {
   const colorScheme = useColorScheme();
   const theme = getTheme(colorScheme);
   const screenWidth = Dimensions.get("window").width;
   const flatListRef = useRef<FlatList>(null);
+
+  const { user } = useAuth();
+
+  // 1. State for user's daily objectives
+  const [dailyObjectives, setDailyObjectives] = useState<{ id: string; title: string; order: number }[]>([]);
+  const [loadingObjectives, setLoadingObjectives] = useState(true);
+
+  // Add a state for refreshing
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Extract fetch logic to a function so it can be reused
+  const fetchDailyObjectives = useCallback(async () => {
+    if (!user) {
+      setDailyObjectives([]);
+      setLoadingObjectives(false);
+      return;
+    }
+    setLoadingObjectives(true);
+    const colRef = collection(db, "users", user.uid, "dailyList");
+    const snap = await getDocs(colRef);
+
+    // Build a map of default titles for fallback
+    const defaultTitleMap = Object.fromEntries(ALL_DAILY_ITEMS.map(item => [item.id, item.title]));
+
+    const items: { id: string; title: string; order: number; enabled: boolean }[] = [];
+    snap.forEach(doc => {
+      const data = doc.data();
+      if (data.enabled) {
+        items.push({
+          id: doc.id,
+          // Prefer Firestore title, else fallback to default
+          title: data.title || defaultTitleMap[doc.id] || doc.id,
+          order: typeof data.order === "number" ? data.order : 999,
+          enabled: true,
+        });
+      }
+    });
+    items.sort((a, b) => a.order - b.order);
+    setDailyObjectives(items);
+    setLoadingObjectives(false);
+  }, [user]);
+
+  // Use the function in useEffect
+  useEffect(() => {
+    fetchDailyObjectives();
+  }, [fetchDailyObjectives]);
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchDailyObjectives();
+    setRefreshing(false);
+  }, [fetchDailyObjectives]);
 
   const { datePages, todayIndex } = useMemo(() => {
     const today = new Date();
@@ -90,37 +149,61 @@ export default function Index() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <DateSelector date={selectedDate} onDateChange={handleDateChange} />
-      
-      <FlatList
-        ref={flatListRef}
-        data={datePages}
-        keyExtractor={getDateKey}
-        renderItem={({ item }) => (
-          <View style={[styles.page, { width: screenWidth }]}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-              {dailyObjectives.map((obj) => (
-                <DailyCard 
-                  key={`${getDateKey(item)}-${obj.id}`}
-                  id={obj.id}
-                  title={obj.title}
-                  date={item}
-                />
-              ))}
-            </ScrollView>
-          </View>
-        )}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        initialScrollIndex={todayIndex}
-        getItemLayout={(_, index) => ({
-          length: screenWidth,
-          offset: screenWidth * index,
-          index,
-        })}
-        onMomentumScrollEnd={onMomentumScrollEnd}
-        style={{ flex: 1 }}
-      />
+
+      {loadingObjectives ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={theme.colors.accent} />
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={datePages}
+          keyExtractor={getDateKey}
+          renderItem={({ item }) => (
+            <View style={[styles.page, { width: screenWidth }]}>
+              <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[theme.colors.accent]}
+                    tintColor={theme.colors.accent}
+                  />
+                }
+              >
+                {dailyObjectives.length === 0 ? (
+                  <Text style={{ color: theme.colors.muted, marginTop: 32, textAlign: "center" }}>
+                    No daily items enabled. Go to the Daily List Builder to customize your list.
+                  </Text>
+                ) : (
+                  [...dailyObjectives]
+                    .sort((a, b) => a.order - b.order)
+                    .map((obj) => (
+                      <DailyCard
+                        key={`${getDateKey(item)}-${obj.id}`}
+                        id={obj.id}
+                        title={obj.title}
+                        date={item}
+                      />
+                    ))
+                )}
+              </ScrollView>
+            </View>
+          )}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          initialScrollIndex={todayIndex}
+          getItemLayout={(_, index) => ({
+            length: screenWidth,
+            offset: screenWidth * index,
+            index,
+          })}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          style={{ flex: 1 }}
+        />
+      )}
     </View>
   );
 }

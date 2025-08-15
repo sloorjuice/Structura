@@ -236,7 +236,7 @@ export default function VerifyEmailScreen() {
       {/* Move delete account to bottom, subtle style */}
       <View style={{ marginTop: 32, alignItems: 'center', width: '100%' }}>
         <Text style={{ color: theme.colors.textSecondary ?? '#888', fontSize: 14, textAlign: 'center', marginBottom: 8 }}>
-          Can't verify this account?
+          Can&apos;t verify this account?
         </Text>
         <TouchableOpacity
           onPress={handleDeleteAccount}

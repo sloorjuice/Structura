@@ -160,6 +160,20 @@ function AppContent() {
           ),
         }}
       />
+      <Drawer.Screen
+        name="(drawer)/daily-list-builder"
+        options={{
+          title: 'Daily List Builder',
+          drawerIcon: ({ color, size }) => (
+            <Ionicons 
+              name="list" 
+              size={size} 
+              color={color} 
+              style={{ width: 24, marginRight: 12 }}
+            />
+          ),
+        }}
+      />
       
       {/* Authentication screens are grouped and configured to have no header and not appear in the drawer. */}
       <Drawer.Screen 

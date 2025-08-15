@@ -17,6 +17,7 @@ export default function AuthLayout() {
   }, [segments, router]);
 
   return (
+    // Only Stack.Screen children here!
     <Stack
       screenOptions={{
         headerShown: false, // Hide header for ALL auth screens
@@ -29,6 +30,7 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="login" options={{ title: 'Sign In' }} />
       <Stack.Screen name="register" options={{ title: 'Create Account' }} />
+      <Stack.Screen name="daily-list-setup" options={{ title: 'Daily List Setup' }} /> {/* <-- Add this */}
       <Stack.Screen name="forgot-password" options={{ title: 'Reset Password' }} />
       <Stack.Screen name="verify-email" options={{ title: 'Verify Email' }} />
     </Stack>
