@@ -19,7 +19,7 @@ export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerShown: false, // Hide header for ALL auth screens
         animation: 'slide_from_right',
         contentStyle: {
           backgroundColor: theme.colors.background,
@@ -27,30 +27,10 @@ export default function AuthLayout() {
       }}
       initialRouteName="register"
     >
-      <Stack.Screen 
-        name="login" 
-        options={{
-          title: 'Sign In',
-        }}
-      />
-      <Stack.Screen 
-        name="register" 
-        options={{
-          title: 'Create Account',
-        }}
-      />
-      <Stack.Screen 
-        name="forgot-password" 
-        options={{
-          title: 'Reset Password',
-        }}
-      />
-      <Stack.Screen 
-        name="verify-email" 
-        options={{
-          title: 'Verify Email',
-        }}
-      />
+      <Stack.Screen name="login" options={{ title: 'Sign In' }} />
+      <Stack.Screen name="register" options={{ title: 'Create Account' }} />
+      <Stack.Screen name="forgot-password" options={{ title: 'Reset Password' }} />
+      <Stack.Screen name="verify-email" options={{ title: 'Verify Email' }} />
     </Stack>
   );
 }

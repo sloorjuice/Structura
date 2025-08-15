@@ -13,7 +13,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { deleteDoc, doc } from 'firebase/firestore';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
@@ -75,12 +75,6 @@ const deleteUserData = async (uid: string) => {
   // Adjust this logic to match your Firestore structure
   // Delete main user doc
   await deleteDoc(doc(db, 'users', uid));
-
-  // Example: Delete all user's projects
-  const projectsSnap = await getDocs(query(collection(db, 'projects'), where('ownerId', '==', uid)));
-  for (const projectDoc of projectsSnap.docs) {
-    await deleteDoc(projectDoc.ref);
-  }
 
   // Add more collections as needed...
 };

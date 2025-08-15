@@ -1,10 +1,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/themes/theme';
-import { Ionicons } from '@expo/vector-icons';
+import { auth } from '@/utils/firebase';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { sendEmailVerification } from 'firebase/auth';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 export default function VerifyEmailScreen() {
   const { user, refreshUser, logout, deleteAccount } = useAuth();
@@ -15,13 +16,21 @@ export default function VerifyEmailScreen() {
   const [deleting, setDeleting] = useState(false);
 
   const handleResend = async () => {
-    if (!user) return;
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
     setSending(true);
     try {
-      await sendEmailVerification(user);
+      await sendEmailVerification(currentUser);
       Alert.alert('Verification Email Sent', 'Please check your inbox.');
     } catch (e: any) {
-      Alert.alert('Error', e.message);
+      if (e.code === 'auth/too-many-requests') {
+        Alert.alert(
+          'Too Many Requests',
+          'You have requested verification emails too frequently. Please wait a while before trying again.'
+        );
+      } else {
+        Alert.alert('Error', e.message);
+      }
     } finally {
       setSending(false);
     }
@@ -67,62 +76,184 @@ export default function VerifyEmailScreen() {
     );
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace('/(auth)/login');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to sign out.');
+    }
+  };
+
+  const handleOpenInbox = async () => {
+    const url = Platform.OS === 'ios' ? 'message://' : 'mailto:';
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      Linking.openURL(url);
+    } else {
+      Alert.alert('Could not open mail app', 'Please open your email app manually.');
+    }
+  };
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background, padding: 24 }}>
-      <Ionicons name="mail-open-outline" size={64} color={theme.colors.accent} style={{ marginBottom: 24 }} />
-      <Text style={{ fontSize: 22, fontWeight: 'bold', color: theme.colors.text, marginBottom: 12 }}>
-        Verify Your Email
-      </Text>
-      <Text style={{ color: theme.colors.muted, textAlign: 'center', marginBottom: 24 }}>
-        We've sent a verification link to:
-      </Text>
-      <Text style={{ color: theme.colors.text, fontWeight: 'bold', marginBottom: 24 }}>
-        {user?.email}
-      </Text>
-      <TouchableOpacity
-        style={{
-          backgroundColor: theme.colors.accent,
-          padding: 16,
-          borderRadius: theme.radius.md,
-          marginBottom: 16,
-          opacity: sending ? 0.7 : 1,
-        }}
-        onPress={handleResend}
-        disabled={sending}
-      >
-        {sending ? <ActivityIndicator color="#000" /> : <Text style={{ color: '#000', fontWeight: 'bold' }}>Resend Email</Text>}
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={{
-          backgroundColor: theme.colors.accent,
-          padding: 16,
-          borderRadius: theme.radius.md,
-          marginBottom: 16,
-          opacity: checking ? 0.7 : 1,
-        }}
-        onPress={handleCheck}
-        disabled={checking}
-      >
-        {checking ? <ActivityIndicator color="#000" /> : <Text style={{ color: '#fff', fontWeight: 'bold' }}>I've Verified</Text>}
-      </TouchableOpacity>
-      <TouchableOpacity onPress={logout}>
-        <Text style={{ color: theme.colors.error, marginTop: 16 }}>Sign Out</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={{
-          marginTop: 24,
-          backgroundColor: theme.colors.error,
-          padding: 16,
-          borderRadius: theme.radius.md,
-          opacity: deleting ? 0.7 : 1,
-        }}
-        onPress={handleDeleteAccount}
-        disabled={deleting}
-      >
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-          {deleting ? 'Deleting...' : 'Delete Account'}
+    <View style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background,
+      padding: 24,
+    }}>
+      <View style={{
+        width: '100%',
+        maxWidth: 400,
+        backgroundColor: theme.colors.card,
+        borderRadius: theme.radius.lg,
+        padding: 28,
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: Platform.OS === 'android' ? 4 : 0,
+        alignItems: 'center',
+      }}>
+        <Ionicons name="mail-open-outline" size={64} color={theme.colors.accent} style={{ marginBottom: 20 }} />
+        <Text style={{
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: theme.colors.text,
+          marginBottom: 8,
+        }}>
+          Verify Your Email
         </Text>
-      </TouchableOpacity>
+        <View style={{
+          backgroundColor: theme.colors.infoBackground,
+          borderRadius: theme.radius.sm,
+          padding: 12,
+          marginBottom: 18,
+          width: '100%',
+        }}>
+          <Text style={{
+            color: theme.colors.infoText,
+            textAlign: 'center',
+            fontSize: 15,
+          }}>
+            We've sent a verification link to your email address.
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={{
+            backgroundColor: theme.colors.infoBackground,
+            borderRadius: 999,
+            paddingVertical: 8,
+            paddingHorizontal: 18,
+            marginBottom: 18,
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+          onPress={handleOpenInbox}
+        >
+          <Ionicons name="mail" size={18} color={theme.colors.infoText} style={{ marginRight: 8 }} />
+          <Text style={{ color: theme.colors.infoText, fontWeight: 'bold', fontSize: 15 }}>
+            Open Inbox
+          </Text>
+        </TouchableOpacity>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: theme.colors.accent + '22',
+          borderRadius: 999,
+          paddingVertical: 6,
+          paddingHorizontal: 16,
+          marginBottom: 24,
+        }}>
+          <MaterialIcons name="alternate-email" size={20} color={theme.colors.accent} style={{ marginRight: 6 }} />
+          <Text style={{
+            color: theme.colors.text,
+            fontWeight: 'bold',
+            fontSize: 16,
+          }}>
+            {user?.email}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={{
+            backgroundColor: theme.colors.accent,
+            paddingVertical: 14,
+            paddingHorizontal: 32,
+            borderRadius: theme.radius.md,
+            marginBottom: 14,
+            width: '100%',
+            alignItems: 'center',
+            opacity: sending ? 0.7 : 1,
+            shadowColor: theme.colors.accent,
+            shadowOpacity: 0.15,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 2 },
+          }}
+          onPress={handleResend}
+          disabled={sending}
+        >
+          {sending
+            ? <ActivityIndicator color="#000" />
+            : (
+              <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>
+                Resend Email
+              </Text>
+            )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            backgroundColor: theme.colors.primary,
+            paddingVertical: 14,
+            paddingHorizontal: 32,
+            borderRadius: theme.radius.md,
+            marginBottom: 10,
+            width: '100%',
+            alignItems: 'center',
+            opacity: checking ? 0.7 : 1,
+            shadowColor: theme.colors.primary,
+            shadowOpacity: 0.12,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 2 },
+          }}
+          onPress={handleCheck}
+          disabled={checking}
+        >
+          {checking
+            ? <ActivityIndicator color="#fff" />
+            : (
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                I've Verified
+              </Text>
+            )}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleLogout} style={{ marginTop: 8 }}>
+          <Text style={{ color: theme.colors.error, fontWeight: '600', fontSize: 15 }}>
+            <Ionicons name="log-out-outline" size={16} color={theme.colors.error} /> Sign Out
+          </Text>
+        </TouchableOpacity>
+      </View>
+      {/* Move delete account to bottom, subtle style */}
+      <View style={{ marginTop: 32, alignItems: 'center', width: '100%' }}>
+        <Text style={{ color: theme.colors.textSecondary ?? '#888', fontSize: 14, textAlign: 'center', marginBottom: 8 }}>
+          Can't verify this account?
+        </Text>
+        <TouchableOpacity
+          onPress={handleDeleteAccount}
+          disabled={deleting}
+          style={{
+            paddingVertical: 8,
+            paddingHorizontal: 18,
+            borderRadius: theme.radius.md,
+            opacity: deleting ? 0.7 : 1,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: theme.colors.error, fontWeight: 'bold', fontSize: 15 }}>
+            {deleting ? 'Deleting...' : 'Delete this account'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

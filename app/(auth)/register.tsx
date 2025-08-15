@@ -35,7 +35,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   
-  const { signUp } = useAuth();
+  const { signUp, user } = useAuth();
   const theme = useTheme();
   const router = useRouter();
   
@@ -90,7 +90,7 @@ export default function RegisterScreen() {
     
     try {
       await signUp(email, password, name);
-      // Navigation will be handled by the auth state change
+      router.replace('/(auth)/verify-email');
     } catch (error: any) {
       console.error('Registration error:', error);
       Alert.alert(
@@ -108,6 +108,17 @@ export default function RegisterScreen() {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
+
+  React.useEffect(() => {
+    if (user) {
+      // Navigation will be handled by the global useProtectedRoute hook,
+      // but you can optionally close the keyboard or reset form here.
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+    }
+  }, [user]);
 
   return (
     <KeyboardAvoidingView 

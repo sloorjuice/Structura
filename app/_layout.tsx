@@ -2,7 +2,7 @@
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/themes/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { SplashScreen, Stack, useRouter, useSegments } from 'expo-router';
+import { SplashScreen, useRouter, useSegments } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -46,19 +46,23 @@ function useProtectedRoute() {
 
     const inAuthGroup = segments[0] === '(auth)';
 
+    // If not logged in and not in (auth) group, redirect to login
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (user && !user.emailVerified && !inAuthGroup) {
-      // If user is logged in but not verified, redirect to verify screen
+    }
+    // If logged in but not verified and not in (auth), redirect to verify-email
+    else if (user && !user.emailVerified && !inAuthGroup) {
       router.replace('/(auth)/verify-email');
-    } else if (user && user.emailVerified && inAuthGroup) {
+    }
+    // If logged in and verified but in (auth), redirect to main app
+    else if (user && user.emailVerified && inAuthGroup) {
       router.replace('/(tabs)');
     }
   }, [user, loading, segments, router]);
 }
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
   const theme = useTheme();
   useProtectedRoute();
 
@@ -74,31 +78,7 @@ function AppContent() {
     return <LoadingScreen />;
   }
 
-  // The navigation is now handled by the useProtectedRoute hook
-  // We can return the correct navigator based on the user state
-  if (!user) {
-    // User is not authenticated, show auth stack
-    return (
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'slide_from_right',
-          contentStyle: {
-            backgroundColor: theme.colors.background,
-          },
-        }}
-      >
-        <Stack.Screen 
-          name="(auth)" 
-          options={{
-            title: 'Authentication',
-          }}
-        />
-      </Stack>
-    );
-  }
-
-  // User is authenticated, show main app with drawer
+  // A stable navigator structure is used. The useProtectedRoute hook handles swapping screens.
   return (
     <Drawer
       screenOptions={{
@@ -136,6 +116,7 @@ function AppContent() {
         swipeEdgeWidth: 50,
       }}
     >
+      {/* Main App Screens */}
       <Drawer.Screen
         name="(tabs)"
         options={{
@@ -179,18 +160,22 @@ function AppContent() {
           ),
         }}
       />
-      {/* Hidden screens */}
+      
+      {/* Authentication screens are grouped and configured to have no header and not appear in the drawer. */}
+      <Drawer.Screen 
+        name="(auth)" 
+        options={{
+          headerShown: false,
+          drawerItemStyle: { display: 'none' },
+        }} 
+      />
+
+      {/* Not Found Screen */}
       <Drawer.Screen 
         name="+not-found" 
         options={{ 
           drawerItemStyle: { height: 0 } 
         }} 
-      />
-      <Drawer.Screen
-        name="(auth)"
-        options={{
-          drawerItemStyle: { display: 'none' }, // Hide from drawer
-        }}
       />
     </Drawer>
   );

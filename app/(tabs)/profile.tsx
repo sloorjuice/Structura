@@ -53,27 +53,44 @@ export default function ProfileScreen() {
   };
 
   const handleDeleteAccount = async () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to permanently delete your account and all your data? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await deleteAccount();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete account.');
-            } finally {
-              setDeleting(false);
-            }
+    const isWeb = typeof window !== 'undefined' && typeof document !== 'undefined';
+    if (isWeb) {
+      const confirmed = window.confirm(
+        'Are you sure you want to permanently delete your account and all your data? This action cannot be undone.'
+      );
+      if (confirmed) {
+        setDeleting(true);
+        try {
+          await deleteAccount();
+        } catch (error: any) {
+          window.alert(error.message || 'Failed to delete account.');
+        } finally {
+          setDeleting(false);
+        }
+      }
+    } else {
+      Alert.alert(
+        'Delete Account',
+        'Are you sure you want to permanently delete your account and all your data? This action cannot be undone.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              setDeleting(true);
+              try {
+                await deleteAccount();
+              } catch (error: any) {
+                Alert.alert('Error', error.message || 'Failed to delete account.');
+              } finally {
+                setDeleting(false);
+              }
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (

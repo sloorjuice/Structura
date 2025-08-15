@@ -1,7 +1,9 @@
 import { useTheme } from '@/themes/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import { DrawerToggleButton } from '@react-navigation/drawer';
 import { Tabs } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function TabLayout() {
@@ -26,7 +28,7 @@ export default function TabLayout() {
           backgroundColor: theme.colors.tabBarBackground,
           borderTopColor: theme.colors.border,
           height: 60,
-          paddingBottom: 8,
+          paddingBottom: 2,
           paddingTop: 8,
         },
         tabBarActiveTintColor: theme.colors.tabBarActiveTint,
@@ -36,6 +38,11 @@ export default function TabLayout() {
           ...theme.fonts.medium,
         },
       }}
+      tabBar={props => (
+        <SafeAreaView edges={['bottom']} style={{ backgroundColor: theme.colors.tabBarBackground }}>
+          <BottomTabBar {...props} />
+        </SafeAreaView>
+      )}
     >
       <Tabs.Screen
         name="index"

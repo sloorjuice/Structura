@@ -45,6 +45,10 @@ const lightColors = {
   headerText: '#25292e',
   star: '#ffd33d', // accent
   icon: '#888',
+  infoBackground: '#eaf4ff',
+  infoText: '#2563eb',
+  primary: '#2563eb', // <-- Add this line (blue, matches infoText)
+  textSecondary: '#888', // <-- Added
 };
 
 const darkColors = {
@@ -66,6 +70,10 @@ const darkColors = {
   headerText: '#fff',
   star: '#ffd33d', // accent
   icon: '#aaa',
+  infoBackground: '#22304a',
+  infoText: '#90b4fa',
+  primary: '#90b4fa', // <-- Add this line (matches infoText)
+  textSecondary: '#aaa', // <-- Added
 };
 
 export const lightTheme = {
