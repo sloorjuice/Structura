@@ -8,20 +8,19 @@ import DateSelector from "@/components/DateSelector";
 
 // Mock Data with unique IDs
 const dailyObjectives = [
-  { id: 'breakfast', title: "Breakfast" }, 
-  { id: 'brush-teeth-morning', title: "Brush Teeth" }, 
-  { id: 'exercises', title: "Exercises" },
-  { id: 'shower-morning', title: "Shower (Morning)" }, 
-  { id: 'meditation', title: "Meditation" }, 
-  { id: 'journal-morning', title: "Journal" },
-  { id: 'hobby-morning', title: "Hobby" }, 
-  { id: 'lunch', title: "Lunch" }, 
-  { id: 'brush-teeth-midday', title: "Brush Teeth" },
-  { id: 'hobby-afternoon', title: "Hobby" }, 
-  { id: 'dinner', title: "Dinner" }, 
-  { id: 'journal-evening', title: "Journal" },
-  { id: 'hobby-evening', title: "Hobby" }, 
-  { id: 'brush-teeth-night', title: "Brush Teeth" },
+  { id: "breakfast", title: "Eat Breakfast" },
+  { id: "brush-teeth-morning", title: "Brush Teeth (Morning)" },
+  { id: "exercise", title: "Exercise" },
+  { id: "shower-morning", title: "Shower (Morning)" },
+  { id: "meditation", title: "Meditate" },
+  { id: "journal-morning", title: "Journal – Plan Your Day" },
+  { id: "hobby-morning", title: "Work on a Hobby (Morning)" },
+  { id: "lunch", title: "Eat Lunch" },
+  { id: "hobby-afternoon", title: "Work on a Hobby (Afternoon)" },
+  { id: "dinner", title: "Eat Dinner" },
+  { id: "journal-evening", title: "Journal – Reflect on Your Day" },
+  { id: "hobby-evening", title: "Work on a Hobby (Evening)" },
+  { id: "brush-teeth-night", title: "Brush Teeth (Night)" },
 ];
 
 // Helper to get a string key for a date (YYYY-MM-DD)
