@@ -10,7 +10,7 @@ import DateSelector from "@/components/DateSelector";
 const dailyObjectives = [
   { id: "breakfast", title: "Eat Breakfast" },
   { id: "brush-teeth-morning", title: "Brush Teeth (Morning)" },
-  { id: "exercise", title: "Exercise" },
+  { id: "exercises", title: "Exercises" },
   { id: "shower-morning", title: "Shower (Morning)" },
   { id: "meditation", title: "Meditate" },
   { id: "journal-morning", title: "Journal – Plan Your Day" },
