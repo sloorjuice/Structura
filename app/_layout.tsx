@@ -133,6 +133,20 @@ function AppContent() {
         }}
       />
       <Drawer.Screen
+        name="(drawer)/daily-list-builder"
+        options={{
+          title: 'Daily List Builder',
+          drawerIcon: ({ color, size }) => (
+            <Ionicons 
+              name="checkbox" 
+              size={size} 
+              color={color} 
+              style={{ width: 24, marginRight: 12 }}
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="(drawer)/hobbies"
         options={{
           title: 'Hobbies',
@@ -153,20 +167,6 @@ function AppContent() {
           drawerIcon: ({ color, size }) => (
             <Ionicons 
               name="folder" 
-              size={size} 
-              color={color} 
-              style={{ width: 24, marginRight: 12 }}
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="(drawer)/daily-list-builder"
-        options={{
-          title: 'Daily List Builder',
-          drawerIcon: ({ color, size }) => (
-            <Ionicons 
-              name="list" 
               size={size} 
               color={color} 
               style={{ width: 24, marginRight: 12 }}

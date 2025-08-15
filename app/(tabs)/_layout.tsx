@@ -47,7 +47,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Daily Tracker',
+          title: 'Daily List',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="today" size={size} color={color} />
           ),
