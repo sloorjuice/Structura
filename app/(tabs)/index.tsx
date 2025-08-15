@@ -12,6 +12,7 @@ import { ActivityIndicator, Dimensions, FlatList, NativeScrollEvent, NativeSynth
 import DailyCard from "@/components/DailyCard";
 import DateSelector from "@/components/DateSelector";
 import ExercisesCard from "@/components/ExercisesCard";
+import ProgressBar from "@/components/ProgressBar";
 import { useFocusEffect } from '@react-navigation/native';
 
 // Helper to get a string key for a date (YYYY-MM-DD)
@@ -235,43 +236,17 @@ export default function Index() {
     prevAllCompleteRef.current = allComplete;
   }, [progress.completed, progress.total]);
 
-  // Progress bar component with smooth animations
-  const renderProgressBar = useMemo(() => {
-    const progressPercentage = progress.total > 0 ? (progress.completed / progress.total) * 100 : 0;
-    
-    return (
-      <View style={styles.progressBarWrapper}>
-        <View style={[styles.progressBarBackground, { backgroundColor: theme.colors.border }]}>
-          <View
-            style={[
-              styles.progressBarFill,
-              {
-                backgroundColor: theme.colors.accent,
-                width: `${progressPercentage}%`,
-              },
-            ]}
-          />
-        </View>
-        <View style={styles.progressTextContainer}>
-          {progressLoading ? (
-            <ActivityIndicator size="small" color={theme.colors.muted} />
-          ) : (
-            <Text style={[styles.progressText, { color: theme.colors.muted }]}>
-              {progress.completed} / {progress.total} completed
-              {progressPercentage === 100 && ' 🎉'}
-            </Text>
-          )}
-        </View>
-      </View>
-    );
-  }, [progress, progressLoading, theme]);
-
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <DateSelector date={selectedDate} onDateChange={handleDateChange} />
 
-      {/* Optimized Progress Bar */}
-      {renderProgressBar}
+      {/* Progress Bar as a component */}
+      <ProgressBar
+        completed={progress.completed}
+        total={progress.total}
+        loading={progressLoading}
+        theme={theme}
+      />
 
       {loadingObjectives ? (
         <View style={styles.loadingContainer}>
@@ -380,30 +355,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 32,
     paddingHorizontal: 16,
-  },
-  progressBarWrapper: {
-    alignItems: "center",
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  progressBarBackground: {
-    height: 8,
-    width: "100%",
-    borderRadius: 4,
-    overflow: "hidden",
-    marginBottom: 8,
-  },
-  progressBarFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  progressTextContainer: {
-    minHeight: 20,
-    justifyContent: 'center',
-  },
-  progressText: {
-    fontSize: 12,
-    textAlign: "center",
   },
   loadingContainer: {
     flex: 1,

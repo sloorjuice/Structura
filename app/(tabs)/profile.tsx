@@ -18,6 +18,7 @@ export default function ProfileScreen() {
         setLoggingOut(true);
         try {
           await logout();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error: any) {
           window.alert('Failed to sign out. Please try again.');
         } finally {
@@ -40,6 +41,7 @@ export default function ProfileScreen() {
               setLoggingOut(true);
               try {
                 await logout();
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               } catch (error: any) {
                 Alert.alert('Error', 'Failed to sign out. Please try again.');
               } finally {

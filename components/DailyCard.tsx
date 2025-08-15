@@ -19,6 +19,16 @@ export default function DailyCard({ id, title, date, onProgressUpdate }: Props) 
   const { user, loading: authLoading } = useAuth();
   const { emitProgressUpdate } = useProgress();
 
+  // Helper to check if date is today
+  const isToday = (() => {
+    const now = new Date();
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
+  })();
+
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +124,7 @@ export default function DailyCard({ id, title, date, onProgressUpdate }: Props) 
           style={[styles.checkbox, { marginRight: theme.spacing.sm }]}
           thumbColor={checked ? theme.colors.accent : theme.colors.surface}
           trackColor={{ false: theme.colors.muted, true: theme.colors.accent }}
+          disabled={!isToday}
         />
       )}
       <Text
@@ -127,7 +138,8 @@ export default function DailyCard({ id, title, date, onProgressUpdate }: Props) 
           },
         ]}
       >
-        {title}{error ? ` (${error})` : ''}
+        {title}
+        {error ? ` (${error})` : ''}
       </Text>
     </CardContainer>
   );

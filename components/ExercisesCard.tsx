@@ -22,7 +22,17 @@ export default function ExercisesCard({ period, date, exercises, refreshing, onP
   const [expanded, setExpanded] = useState(false);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
-  
+
+  // Helper to check if date is today
+  const isToday = useMemo(() => {
+    const now = new Date();
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
+  }, [date]);
+
   // Add a ref to track toggle operations and prevent refetching during toggles
   const isTogglingRef = useRef(false);
   // Track the last updated exercise to avoid race conditions
@@ -42,7 +52,6 @@ export default function ExercisesCard({ period, date, exercises, refreshing, onP
     setLoading(true);
     Promise.all(
       exercises.map(ex => {
-        // Use the cached value for recently updated exercises to prevent flicker
         const lastUpdated = lastUpdatedRef.current;
         if (lastUpdated && 
             lastUpdated.exercise === ex && 
@@ -79,7 +88,7 @@ export default function ExercisesCard({ period, date, exercises, refreshing, onP
       console.error('Error refreshing exercise statuses:', error);
       setLoading(false);
     });
-  }, [refreshing]);  // Only depends on refreshing
+  }, [refreshing, user, exercises, date, period]);  // Only depends on refreshing
 
   // Optimized toggle handler with race condition prevention
   const handleToggle = useCallback(async (ex: string) => {
@@ -109,6 +118,7 @@ export default function ExercisesCard({ period, date, exercises, refreshing, onP
       onProgressUpdate?.();
       // Emit progress update event
       emitProgressUpdate?.();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Revert on error
       setChecked(prev => ({ ...prev, [ex]: !newVal }));
@@ -184,11 +194,13 @@ export default function ExercisesCard({ period, date, exercises, refreshing, onP
                   styles.exerciseRow, 
                   { 
                     borderBottomColor: theme.colors.border,
-                    borderBottomWidth: index < exercises.length - 1 ? 0.5 : 0
+                    borderBottomWidth: index < exercises.length - 1 ? 0.5 : 0,
+                    opacity: isToday ? 1 : 0.5,
                   }
                 ]}
-                onPress={() => handleToggle(ex)}
-                activeOpacity={0.7}
+                onPress={() => isToday && handleToggle(ex)}
+                activeOpacity={isToday ? 0.7 : 1}
+                disabled={!isToday}
               >
                 <Ionicons
                   name={checked[ex] ? 'checkbox' : 'square-outline'}
