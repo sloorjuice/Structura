@@ -1,6 +1,6 @@
+import { EXERCISES } from '@/constants/exercises';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/themes/theme';
-import { EXERCISES } from '@/utils/exercises';
 import { db } from '@/utils/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
