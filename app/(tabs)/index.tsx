@@ -55,7 +55,7 @@ export default function Index() {
   // Progress state with realtime updates
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
   const [progressLoading, setProgressLoading] = useState(false);
-  const progressUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const progressUpdateTimeoutRef = useRef<number | null>(null);
   const prevAllCompleteRef = useRef(false);
 
   // Extract fetch logic to a function so it can be reused
