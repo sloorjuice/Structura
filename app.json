@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "structura",
+    "name": "Structura",
     "slug": "structura",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,15 +8,27 @@
     "scheme": "structura",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sloorjuice.structura",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.sloorjuice.structura",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",

@@ -1,76 +1,60 @@
-import { getTheme } from '@/themes/theme';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { DrawerActions, useNavigation } from '@react-navigation/native';
+import { useTheme } from '@/themes/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { DrawerToggleButton } from '@react-navigation/drawer';
 import { Tabs } from 'expo-router';
-import { Text, TouchableOpacity, View, useColorScheme } from 'react-native';
 
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const theme = getTheme(colorScheme);
-  const navigation = useNavigation();
+  const theme = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.accent,
-        headerStyle: {
+        headerShown: true,
+        headerStyle: { 
           backgroundColor: theme.colors.headerBackground,
+          elevation: 0,
+          shadowOpacity: 0,
         },
-        headerShadowVisible: false,
         headerTintColor: theme.colors.headerText,
-        headerTitleAlign: "center",
+        headerTitleStyle: {
+          ...theme.fonts.bold,
+          fontSize: 18,
+        },
+        headerLeft: () => <DrawerToggleButton tintColor={theme.colors.headerText} />,
         tabBarStyle: {
           backgroundColor: theme.colors.tabBarBackground,
+          borderTopColor: theme.colors.border,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarActiveTintColor: theme.colors.tabBarActiveTint,
+        tabBarInactiveTintColor: theme.colors.muted,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          ...theme.fonts.medium,
         },
       }}
     >
-      <Tabs.Screen 
-        name="index" 
-        options={{ 
-          title: 'Daily Objectives',
-          headerLeft: () => (
-            <TouchableOpacity 
-              style={{ marginLeft: 16 }} 
-              onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
-            >
-              <Ionicons name="menu" size={28} color={theme.colors.icon} />
-            </TouchableOpacity>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Daily Tracker',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="today" size={size} color={color} />
           ),
-          headerRight: () => (
-            <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16 }}>
-              <Ionicons name="star" size={22} color={theme.colors.accent} style={{ marginRight: 6 }} />
-              <Text style={{ color: theme.colors.text, fontWeight: "bold", fontSize: 16 }}>17 Days</Text>
-            </View>
-          ),
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24} />
-          ),
-        }} 
+        }}
       />
-      <Tabs.Screen 
-        name="profile" 
-        options={{ 
-          title: 'Profile', 
-          headerLeft: () => (
-            <TouchableOpacity 
-              style={{ marginLeft: 16 }} 
-              onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
-            >
-              <Ionicons name="menu" size={28} color={theme.colors.icon} />
-            </TouchableOpacity>
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
           ),
-          headerRight: () => (
-            <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16 }}>
-              <Ionicons name="star" size={22} color={theme.colors.accent} style={{ marginRight: 6 }} />
-              <Text style={{ color: theme.colors.text, fontWeight: "bold", fontSize: 16 }}>17 Days</Text>
-            </View>
-          ),
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person-sharp' : 'person-outline'} color={color} size={24} />
-          ),
-        }} 
-      />  
+        }}
+      />
     </Tabs>
   );
 }
