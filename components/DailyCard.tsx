@@ -2,107 +2,93 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/themes/theme';
 import { getObjectiveStatus, updateObjectiveStatus } from '@/utils/dailyObjectives';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Switch } from 'react-native-gesture-handler';
 
 type Props = {
-  id: string;       // Unique identifier for the objective
-  title: string;    // Display title
-  date: Date;       // Date for which to show/save the status
+  id: string;
+  title: string;
+  date: Date;
 };
 
 export default function DailyCard({ id, title, date }: Props) {
-  const [checked, setChecked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
 
-  // Fetch the initial state when the component mounts or date changes
+  const [checked, setChecked] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch status when ready
   useEffect(() => {
+    let ignore = false;
+
     const fetchStatus = async () => {
-      if (authLoading) return; // Wait for auth to initialize
-      if (!user) {
+      if (!user || authLoading) {
         setLoading(false);
+        setChecked(false);
         return;
       }
-      
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        setError(null);
-        const status = await getObjectiveStatus(id, date);
-        setChecked(status);
-      } catch (error) {
-        console.error(`Error fetching objective status for ${id}:`, error);
-        setError('Failed to load status');
+        const status = await getObjectiveStatus(user.uid, id, date);
+        if (!ignore) setChecked(status);
+      } catch (e) {
+        if (!ignore) setError('Failed to load status');
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     fetchStatus();
+    return () => { ignore = true; };
   }, [id, date, user, authLoading]);
 
-  // Handle status change
+  // Handle toggle
   const handleToggle = async (value: boolean) => {
     if (!user) return;
-
-    setChecked(value); // Optimistic update
+    setChecked(value);
     setError(null);
-    
     try {
-      await updateObjectiveStatus(id, date, value);
-      console.log(`Successfully toggled ${id} to ${value} on ${Platform.OS}`);
-    } catch (error) {
-      console.error(`Failed to update objective status for ${id}:`, error);
-      setChecked(!value); // Revert on failure
+      await updateObjectiveStatus(user.uid, id, date, value);
+    } catch {
+      setChecked(!value);
       setError('Failed to update');
     }
   };
 
-  // If not authenticated, show a disabled state
-  if (!user && !authLoading) {
+  // Loading auth state
+  if (authLoading) {
     return (
-      <View
-        style={[
-          styles.container,
-          {
-            backgroundColor: theme.colors.card,
-            borderBottomColor: theme.colors.border,
-            shadowColor: theme.colors.shadow,
-            borderRadius: theme.radius.md,
-            padding: theme.spacing.md,
-            opacity: 0.7
-          },
-        ]}
-      >
+      <CardContainer theme={theme} opacity={0.7}>
+        <ActivityIndicator size="small" color={theme.colors.accent} style={{ marginRight: theme.spacing.sm }} />
+        <Text style={[styles.title, { color: theme.colors.text, ...theme.fonts.medium }]}>{title}</Text>
+      </CardContainer>
+    );
+  }
+
+  // Not signed in
+  if (!user) {
+    return (
+      <CardContainer theme={theme} opacity={0.7}>
         <Switch
           value={false}
-          disabled={true}
+          disabled
           style={{ marginRight: theme.spacing.sm }}
           thumbColor={theme.colors.surface}
           trackColor={{ false: theme.colors.muted, true: theme.colors.accent }}
         />
         <Text style={[styles.title, { color: theme.colors.text, ...theme.fonts.medium }]}>
-          {title} {error ? ' (Sign in required)' : ''}
+          {title} (Sign in required)
         </Text>
-      </View>
+      </CardContainer>
     );
   }
 
+  // Main card
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: theme.colors.card,
-          borderBottomColor: theme.colors.border,
-          shadowColor: theme.colors.shadow,
-          borderRadius: theme.radius.md,
-          padding: theme.spacing.md,
-        },
-      ]}
-    >
+    <CardContainer theme={theme}>
       {loading ? (
         <ActivityIndicator size="small" color={theme.colors.accent} style={{ marginRight: theme.spacing.sm }} />
       ) : (
@@ -117,16 +103,37 @@ export default function DailyCard({ id, title, date }: Props) {
       <Text
         style={[
           styles.title,
-          { 
-            color: theme.colors.text, 
+          {
+            color: theme.colors.text,
             ...theme.fonts.medium,
             textDecorationLine: checked ? 'line-through' : 'none',
-            opacity: checked ? 0.7 : 1
+            opacity: checked ? 0.7 : 1,
           },
         ]}
       >
-        {title} {error ? ` (${error})` : ''}
+        {title}{error ? ` (${error})` : ''}
       </Text>
+    </CardContainer>
+  );
+}
+
+// Extracted for DRYness
+function CardContainer({ children, theme, opacity = 1 }: { children: React.ReactNode, theme: any, opacity?: number }) {
+  return (
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.card,
+          borderBottomColor: theme.colors.border,
+          shadowColor: theme.colors.shadow,
+          borderRadius: theme.radius.md,
+          padding: theme.spacing.md,
+          opacity,
+        },
+      ]}
+    >
+      {children}
     </View>
   );
 }

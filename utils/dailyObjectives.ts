@@ -1,9 +1,10 @@
-import { auth, db } from '@/utils/firebase';
+import { db } from '@/utils/firebase';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { formatDateKey } from './date'; // <-- add this import
 
 // Format date as YYYY-MM-DD for Firestore document ID
 const formatDateForFirestore = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  return formatDateKey(date);
 };
 
 // Ensure parent documents exist
@@ -29,17 +30,17 @@ const ensureParentDocuments = async (userId: string, dateStr: string): Promise<v
 
 // Check if an objective is completed for a specific date
 export const getObjectiveStatus = async (
+  userId: string,
   objectiveId: string,
   date: Date
 ): Promise<boolean> => {
-  const user = auth.currentUser;
-  if (!user) throw new Error('User must be logged in');
+  if (!userId) throw new Error('User must be logged in');
 
   const dateStr = formatDateForFirestore(date);
   const docRef = doc(
     db,
     'users',
-    user.uid,
+    userId,
     'dailyChecks',
     dateStr,
     'objectives',
@@ -57,24 +58,24 @@ export const getObjectiveStatus = async (
 
 // Update the checked status of an objective for a specific date
 export const updateObjectiveStatus = async (
+  userId: string,
   objectiveId: string,
   date: Date,
   checked: boolean
 ): Promise<void> => {
-  const user = auth.currentUser;
-  if (!user) throw new Error('User must be logged in');
+  if (!userId) throw new Error('User must be logged in');
 
   const dateStr = formatDateForFirestore(date);
   
   try {
     // Ensure parent documents exist before writing to the subcollection
-    await ensureParentDocuments(user.uid, dateStr);
+    await ensureParentDocuments(userId, dateStr);
     
     // Now it's safe to write to the objective document
     const objectiveDocRef = doc(
       db,
       'users',
-      user.uid,
+      userId,
       'dailyChecks',
       dateStr,
       'objectives',

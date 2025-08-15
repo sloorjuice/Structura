@@ -25,7 +25,13 @@ const dailyObjectives = [
 ];
 
 // Helper to get a string key for a date (YYYY-MM-DD)
-const getDateKey = (date: Date): string => date.toISOString().split("T")[0];
+const getDateKey = (date: Date): string => {
+  // Always use local date, not UTC
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 // Generates a range of dates from a start date to an end date
 const generateDateRange = (start: Date, end: Date): Date[] => {
