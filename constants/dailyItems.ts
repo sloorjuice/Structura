@@ -1,0 +1,18 @@
+export const ALL_DAILY_ITEMS = [
+  { id: "breakfast", title: "Eat Breakfast" },
+  { id: "brush-teeth-morning", title: "Brush Teeth (Morning)" },
+  { id: "exercises-morning", title: "Exercises (Morning)" },
+  { id: "shower-morning", title: "Shower (Morning)" },
+  { id: "meditation", title: "Meditate" },
+  { id: "journal-morning", title: "Journal – Plan Your Day" },
+  { id: "hobby-morning", title: "Work on a Hobby (Morning)" },
+  { id: "lunch", title: "Eat Lunch" },
+  { id: "brush-teeth-afternoon", title: "Brush Teeth (Afternoon)" },
+  { id: "hobby-afternoon", title: "Work on a Hobby (Afternoon)" },
+  { id: "exercises-afternoon", title: "Exercises (Afternoon)" },
+  { id: "dinner", title: "Eat Dinner" },
+  { id: "shower-night", title: "Shower (Night)" },
+  { id: "journal-evening", title: "Journal – Reflect on Your Day" },
+  { id: "hobby-evening", title: "Work on a Hobby (Evening)" },
+  { id: "brush-teeth-night", title: "Brush Teeth (Night)" },
+];

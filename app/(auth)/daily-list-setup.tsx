@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/themes/theme';
+import { EXERCISES } from '@/utils/exercises';
 import { db } from '@/utils/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -36,6 +37,8 @@ export default function DailyListSetup() {
   const router = useRouter();
   const [items, setItems] = useState<DailyItem[]>([]);
   const [saving, setSaving] = useState(false);
+  const [morningExercises, setMorningExercises] = useState<string[]>([]);
+  const [nightExercises, setNightExercises] = useState<string[]>([]);
 
   // Initialize with all enabled by default
   useEffect(() => {
@@ -75,6 +78,11 @@ export default function DailyListSetup() {
       const docRef = doc(db, 'users', user.uid, 'dailyList', item.id);
       batch.set(docRef, { enabled: item.enabled, order: idx, title: item.title }, { merge: true });
     });
+    const docRef = doc(db, 'users', user.uid, 'dailyList', 'exercises');
+    batch.set(docRef, {
+      morning: morningExercises,
+      night: nightExercises,
+    }, { merge: true });
     await batch.commit();
     setSaving(false);
     router.replace('/(auth)/verify-email');
@@ -147,6 +155,38 @@ export default function DailyListSetup() {
         containerStyle={{ flex: 1, marginTop: 16 }}
         contentContainerStyle={{ paddingBottom: 32 }}
       />
+      <View style={{ marginTop: 24 }}>
+        <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
+          Morning Exercises
+        </Text>
+        {EXERCISES.map(ex => (
+          <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <Switch
+              value={morningExercises.includes(ex)}
+              onValueChange={v => setMorningExercises(prev =>
+                v ? [...prev, ex] : prev.filter(e => e !== ex)
+              )}
+            />
+            <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
+          </View>
+        ))}
+      </View>
+      <View style={{ marginTop: 16 }}>
+        <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
+          Night Exercises
+        </Text>
+        {EXERCISES.map(ex => (
+          <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <Switch
+              value={nightExercises.includes(ex)}
+              onValueChange={v => setNightExercises(prev =>
+                v ? [...prev, ex] : prev.filter(e => e !== ex)
+              )}
+            />
+            <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
+          </View>
+        ))}
+      </View>
       <TouchableOpacity
         style={[
           styles.saveButton,

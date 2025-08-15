@@ -1,6 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useProgress } from '@/contexts/ProgressContext';
 import { useTheme } from '@/themes/theme';
 import { getObjectiveStatus, updateObjectiveStatus } from '@/utils/dailyObjectives';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Switch } from 'react-native-gesture-handler';
@@ -9,11 +11,13 @@ type Props = {
   id: string;
   title: string;
   date: Date;
+  onProgressUpdate?: () => void;
 };
 
-export default function DailyCard({ id, title, date }: Props) {
+export default function DailyCard({ id, title, date, onProgressUpdate }: Props) {
   const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
+  const { emitProgressUpdate } = useProgress();
 
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,16 +49,28 @@ export default function DailyCard({ id, title, date }: Props) {
     return () => { ignore = true; };
   }, [id, date, user, authLoading]);
 
-  // Handle toggle
+  // Handle toggle with haptic feedback and progress refresh
   const handleToggle = async (value: boolean) => {
     if (!user) return;
     setChecked(value);
     setError(null);
+    
+    // Haptic feedback
+    Haptics.impactAsync(
+      value ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light
+    );
+    
     try {
       await updateObjectiveStatus(user.uid, id, date, value);
+      // Trigger progress update callback
+      onProgressUpdate?.();
+      // Emit progress update event
+      emitProgressUpdate();
     } catch {
       setChecked(!value);
       setError('Failed to update');
+      // Error haptic
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 

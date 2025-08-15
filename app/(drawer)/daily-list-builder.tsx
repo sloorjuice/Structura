@@ -1,10 +1,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/themes/theme';
+import { EXERCISES } from '@/utils/exercises';
 import { db } from '@/utils/firebase';
 import { Ionicons } from '@expo/vector-icons';
-import { collection, doc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 
 const ALL_DAILY_ITEMS = [
@@ -34,6 +35,8 @@ export default function DailyListBuilder() {
   const [items, setItems] = useState<DailyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [morningExercises, setMorningExercises] = useState<string[]>([]);
+  const [nightExercises, setNightExercises] = useState<string[]>([]);
 
   // Fetch user's daily list config
   useEffect(() => {
@@ -56,6 +59,17 @@ export default function DailyListBuilder() {
       // Sort by order
       merged.sort((a, b) => a.order - b.order);
       setItems(merged);
+
+      // --- Fetch exercises config ---
+      const exercisesDoc = await getDoc(doc(db, 'users', user.uid, 'dailyList', 'exercises'));
+      if (exercisesDoc.exists()) {
+        const data = exercisesDoc.data();
+        setMorningExercises(Array.isArray(data.morning) ? data.morning : []);
+        setNightExercises(Array.isArray(data.night) ? data.night : []);
+      } else {
+        setMorningExercises([]);
+        setNightExercises([]);
+      }
       setLoading(false);
     })();
   }, [user]);
@@ -87,10 +101,15 @@ export default function DailyListBuilder() {
         const docRef = doc(db, 'users', user.uid, 'dailyList', item.id);
         batch.set(docRef, { order: idx }, { merge: true });
       });
+      const docRef = doc(db, 'users', user.uid, 'dailyList', 'exercises');
+      batch.set(docRef, {
+        morning: morningExercises,
+        night: nightExercises,
+      }, { merge: true });
       await batch.commit();
       setSaving(false);
     },
-    [user]
+    [user, morningExercises, nightExercises]
   );
 
   const renderItem = useCallback(
@@ -150,7 +169,11 @@ export default function DailyListBuilder() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={{ paddingBottom: 32 }}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
         Customize Your Daily List
       </Text>
@@ -163,8 +186,9 @@ export default function DailyListBuilder() {
         renderItem={renderItem}
         onDragEnd={handleDragEnd}
         activationDistance={12}
-        containerStyle={{ flex: 1, marginTop: 16 }}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        containerStyle={{ marginTop: 16 }}
+        contentContainerStyle={{ paddingBottom: 16 }}
+        scrollEnabled={false}
       />
       {saving && (
         <View style={styles.savingOverlay}>
@@ -172,7 +196,39 @@ export default function DailyListBuilder() {
           <Text style={{ color: theme.colors.muted, marginLeft: 8 }}>Saving...</Text>
         </View>
       )}
-    </View>
+      <View style={{ marginTop: 24 }}>
+        <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
+          Morning Exercises
+        </Text>
+        {EXERCISES.map(ex => (
+          <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <Switch
+              value={morningExercises.includes(ex)}
+              onValueChange={v => setMorningExercises(prev =>
+                v ? [...prev, ex] : prev.filter(e => e !== ex)
+              )}
+            />
+            <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
+          </View>
+        ))}
+      </View>
+      <View style={{ marginTop: 16, marginBottom: 32 }}>
+        <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
+          Night Exercises
+        </Text>
+        {EXERCISES.map(ex => (
+          <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <Switch
+              value={nightExercises.includes(ex)}
+              onValueChange={v => setNightExercises(prev =>
+                v ? [...prev, ex] : prev.filter(e => e !== ex)
+              )}
+            />
+            <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 

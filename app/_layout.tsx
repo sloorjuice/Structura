@@ -1,5 +1,6 @@
 // app/_layout.tsx
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ProgressProvider } from '@/contexts/ProgressContext';
 import { useTheme } from '@/themes/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { SplashScreen, useRouter, useSegments } from 'expo-router';
@@ -203,7 +204,9 @@ export default function RootLayout() {
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AuthProvider>
-          <AppContent />
+          <ProgressProvider>
+            <AppContent />
+          </ProgressProvider>
         </AuthProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>
