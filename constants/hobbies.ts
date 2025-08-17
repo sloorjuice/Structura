@@ -2,6 +2,7 @@ export const HOBBIES = [
   // 📖 Creative & Artistic
   { id: "reading", title: "Reading", icon: "📚" },
   { id: "writing", title: "Writing", icon: "✍️" },
+  { id: "blogging", title: "Blogging", icon: "📝" },
   { id: "poetry", title: "Poetry", icon: "📝" },
   { id: "painting", title: "Painting", icon: "🎨" },
   { id: "drawing", title: "Drawing", icon: "✏️" },
