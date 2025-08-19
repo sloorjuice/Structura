@@ -12,7 +12,9 @@ import { ActivityIndicator, Dimensions, FlatList, NativeScrollEvent, NativeSynth
 import DailyCard from "@/components/DailyCard";
 import DateSelector from "@/components/DateSelector";
 import ExercisesCard from "@/components/ExercisesCard";
+import HobbyCard from "@/components/HobbyCard";
 import ProgressBar from "@/components/ProgressBar";
+import { getUserHobbies } from "@/services/hobbies";
 import { useFocusEffect } from '@react-navigation/native';
 
 // Helper to get a string key for a date (YYYY-MM-DD)
@@ -236,6 +238,13 @@ export default function Index() {
     prevAllCompleteRef.current = allComplete;
   }, [progress.completed, progress.total]);
 
+  // Add state for user hobbies
+  const [userHobbies, setUserHobbies] = useState<string[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    getUserHobbies(user.uid).then(setUserHobbies);
+  }, [user]);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <DateSelector date={selectedDate} onDateChange={handleDateChange} />
@@ -281,6 +290,21 @@ export default function Index() {
                       period="night"
                       date={item}
                       exercises={exerciseConfig.night}
+                      refreshing={refreshing}
+                      onProgressUpdate={() => refreshProgress(item)}
+                    />
+                  );
+                } else if (
+                  obj.id === "hobby-morning" ||
+                  obj.id === "hobby-afternoon" ||
+                  obj.id === "hobby-evening"
+                ) {
+                  cards.push(
+                    <HobbyCard
+                      key={`${getDateKey(item)}-${obj.id}`}
+                      date={item}
+                      period={obj.id.split('-')[1] as 'morning' | 'afternoon' | 'evening'}
+                      hobbies={userHobbies}
                       refreshing={refreshing}
                       onProgressUpdate={() => refreshProgress(item)}
                     />

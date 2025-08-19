@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { getObjectiveStatus } from '@/utils/dailyObjectives';
+import { getHobbyObjectiveStatus, getObjectiveStatus } from '@/utils/dailyObjectives';
 import { progressEventEmitter } from '@/utils/eventEmitter';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 interface ProgressContextType {
   getProgress: (date: Date, dailyObjectives: any[], exerciseConfig: any) => Promise<{ completed: number; total: number }>;
@@ -74,7 +74,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           } else {
             try {
               const statuses = await Promise.all(
-                exercises.map(ex =>
+                exercises.map((ex: string) =>
                   getObjectiveStatus(user.uid, `exercise-${period}-${ex}`, date)
                 )
               );
@@ -84,6 +84,19 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               return { completed: 0, total: 1 };
             }
           }
+        }
+      } else if (
+        obj.id === "hobby-morning" ||
+        obj.id === "hobby-afternoon" ||
+        obj.id === "hobby-evening"
+      ) {
+        try {
+          // Extract period from obj.id
+          const period = obj.id.split('-')[1] as 'morning' | 'afternoon' | 'evening';
+          const status = await getHobbyObjectiveStatus(user.uid, date, period);
+          return { completed: status ? 1 : 0, total: 1 };
+        } catch {
+          return { completed: 0, total: 1 };
         }
       } else {
         try {
