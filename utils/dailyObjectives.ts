@@ -92,3 +92,15 @@ export const updateObjectiveStatus = async (
     throw error;
   }
 };
+
+export const getHobbyObjectiveStatus = async (
+  userId: string,
+  date: Date,
+  period: 'morning' | 'afternoon' | 'evening'
+): Promise<boolean> => {
+  const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}_${period}`;
+  const ref = doc(db, "users", userId, "hobbyLogs", dateKey);
+  const snap = await getDoc(ref);
+  const entries = snap.exists() ? snap.data().entries || [] : [];
+  return entries.length > 0;
+};
