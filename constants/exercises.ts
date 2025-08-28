@@ -3,7 +3,7 @@ export const EXERCISES = [
   "Sit Ups",
   "Crunches",
   "Squats",
-  "Lunges"
+  "Lunges",
   "Plank",
   "Pull ups",
   "Mountain climbers",
