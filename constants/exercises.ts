@@ -1,11 +1,13 @@
 export const EXERCISES = [
-  "Push-ups",
-  "Sit-ups",
-  "Curls",
+  "Push Ups",
+  "Sit Ups",
+  "Crunches",
   "Squats",
-  "Jumping Jacks",
+  "Lunges"
   "Plank",
-  "Lunges",
+  "Pull ups",
+  "Mountain climbers",
+  "Burpees",
   "Stretching",
   "Yoga",
   "Running",
