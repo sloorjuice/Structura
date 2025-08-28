@@ -19,6 +19,7 @@ export default function DailyListBuilder() {
   const [saving, setSaving] = useState(false);
   const [morningExercises, setMorningExercises] = useState<string[]>([]);
   const [nightExercises, setNightExercises] = useState<string[]>([]);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   // Fetch user's daily list config
   useEffect(() => {
@@ -53,8 +54,24 @@ export default function DailyListBuilder() {
         setNightExercises([]);
       }
       setLoading(false);
+      setInitialLoad(false);
     })();
   }, [user]);
+
+  // Save exercises config when changed (but not during initial load)
+  useEffect(() => {
+    if (!user || loading || initialLoad) return;
+    const saveExercises = async () => {
+      setSaving(true);
+      const docRef = doc(db, 'users', user.uid, 'dailyList', 'exercises');
+      await setDoc(docRef, {
+        morning: morningExercises,
+        night: nightExercises,
+      }, { merge: true });
+      setSaving(false);
+    };
+    saveExercises();
+  }, [morningExercises, nightExercises, user, loading, initialLoad]);
 
   // Toggle enable/disable
   const handleToggle = useCallback(
