@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, writeBatch } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -22,7 +22,7 @@ export default function DailyListSetup() {
   const [morningExercises, setMorningExercises] = useState<string[]>([]);
   const [nightExercises, setNightExercises] = useState<string[]>([]);
 
-  // Initialize with all enabled by default
+  // Initialize with all enabled and default order
   useEffect(() => {
     setItems(
       ALL_DAILY_ITEMS.map((item, i) => ({
@@ -46,7 +46,7 @@ export default function DailyListSetup() {
   // Handle reorder
   const handleDragEnd = useCallback(
     ({ data }: { data: DailyItem[] }) => {
-      setItems(data);
+      setItems(data.map((item, idx) => ({ ...item, order: idx })));
     },
     []
   );
@@ -67,7 +67,7 @@ export default function DailyListSetup() {
     }, { merge: true });
     await batch.commit();
     setSaving(false);
-    router.replace('/(auth)/verify-email');
+    router.replace('/(tabs)');
   };
 
   const renderItem = useCallback(
@@ -122,73 +122,81 @@ export default function DailyListSetup() {
       edges={['top']}
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
-        Set Up Your Daily List
-      </Text>
-      <Text style={[styles.sub, { color: theme.colors.muted, ...theme.fonts.regular }]}>
-        Enable, disable, and reorder your daily items. You can always change this later!
-      </Text>
-      <DraggableFlatList
-        data={items}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        onDragEnd={handleDragEnd}
-        activationDistance={12}
-        containerStyle={{ flex: 1, marginTop: 16 }}
+      <ScrollView
         contentContainerStyle={{ paddingBottom: 32 }}
-      />
-      <View style={{ marginTop: 24 }}>
-        <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
-          Morning Exercises
-        </Text>
-        {EXERCISES.map(ex => (
-          <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-            <Switch
-              value={morningExercises.includes(ex)}
-              onValueChange={v => setMorningExercises(prev =>
-                v ? [...prev, ex] : prev.filter(e => e !== ex)
-              )}
-            />
-            <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
-          </View>
-        ))}
-      </View>
-      <View style={{ marginTop: 16 }}>
-        <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
-          Night Exercises
-        </Text>
-        {EXERCISES.map(ex => (
-          <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-            <Switch
-              value={nightExercises.includes(ex)}
-              onValueChange={v => setNightExercises(prev =>
-                v ? [...prev, ex] : prev.filter(e => e !== ex)
-              )}
-            />
-            <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
-          </View>
-        ))}
-      </View>
-      <TouchableOpacity
-        style={[
-          styles.saveButton,
-          {
-            backgroundColor: theme.colors.accent,
-            borderRadius: theme.radius.md,
-            opacity: saving ? 0.7 : 1,
-          }
-        ]}
-        onPress={handleSave}
-        disabled={saving}
-        activeOpacity={0.8}
+        keyboardShouldPersistTaps="handled"
       >
-        {saving ? (
-          <ActivityIndicator size="small" color="#000" style={{ marginRight: 8 }} />
-        ) : null}
-        <Text style={[styles.saveButtonText, theme.fonts.bold]}>
-          {saving ? 'Saving...' : 'Save & Continue'}
+        <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
+          Set Up Your Daily List
         </Text>
-      </TouchableOpacity>
+        <Text style={[styles.sub, { color: theme.colors.muted, ...theme.fonts.regular }]}>
+          Enable, disable, and reorder your daily items. You can always change this later!
+        </Text>
+        <DraggableFlatList
+          data={items}
+          keyExtractor={item => item.id}
+          renderItem={renderItem}
+          onDragEnd={handleDragEnd}
+          activationDistance={12}
+          containerStyle={{ marginTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 16 }}
+          scrollEnabled={false}
+        />
+        <View style={{ marginTop: 24 }}>
+          <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
+            Morning Exercises
+          </Text>
+          {EXERCISES.map(ex => (
+            <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+              <Switch
+                value={morningExercises.includes(ex)}
+                onValueChange={v => setMorningExercises(prev =>
+                  v ? [...prev, ex] : prev.filter(e => e !== ex)
+                )}
+                disabled={saving}
+              />
+              <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={{ marginTop: 16, marginBottom: 32 }}>
+          <Text style={[styles.header, { color: theme.colors.text, ...theme.fonts.bold }]}>
+            Night Exercises
+          </Text>
+          {EXERCISES.map(ex => (
+            <View key={ex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+              <Switch
+                value={nightExercises.includes(ex)}
+                onValueChange={v => setNightExercises(prev =>
+                  v ? [...prev, ex] : prev.filter(e => e !== ex)
+                )}
+                disabled={saving}
+              />
+              <Text style={{ marginLeft: 8, color: theme.colors.text }}>{ex}</Text>
+            </View>
+          ))}
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            {
+              backgroundColor: theme.colors.accent,
+              borderRadius: theme.radius.md,
+              opacity: saving ? 0.7 : 1,
+            }
+          ]}
+          onPress={handleSave}
+          disabled={saving}
+          activeOpacity={0.8}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="#000" style={{ marginRight: 8 }} />
+          ) : null}
+          <Text style={[styles.saveButtonText, theme.fonts.bold]}>
+            {saving ? 'Saving...' : 'Save & Continue'}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }

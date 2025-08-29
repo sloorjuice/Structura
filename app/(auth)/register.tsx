@@ -7,6 +7,7 @@ import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -132,11 +133,11 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Ionicons 
-            name="person-add" 
-            size={64} 
-            color={theme.colors.accent} 
-            style={styles.logo}
+          {/* Replace Ionicons with Image */}
+          <Image
+            source={require('@/assets/images/tree.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
           />
           <Text style={[styles.title, { color: theme.colors.text, ...theme.fonts.bold }]}>
             Create Account
@@ -385,8 +386,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logo: {
-    marginBottom: 16,
+  // Add new style for the image logo
+  logoImage: {
+    width: 128,
+    height: 128,
+    marginBottom: -16,
   },
   title: {
     fontSize: 28,

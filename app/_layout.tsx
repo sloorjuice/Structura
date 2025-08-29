@@ -2,6 +2,7 @@
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ProgressProvider } from '@/contexts/ProgressContext';
 import { useTheme } from '@/themes/theme';
+import { isFirstLaunch } from '@/utils/firstLaunch'; // Add this import
 import { Ionicons } from '@expo/vector-icons';
 import { SplashScreen, useRouter, useSegments } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
@@ -47,13 +48,19 @@ function useProtectedRoute() {
 
     const inAuthGroup = segments[0] === '(auth)';
 
+    // First launch logic
+    (async () => {
+      if (!user && inAuthGroup && segments[1] === 'login') {
+        if (await isFirstLaunch()) {
+          router.replace('/(auth)/register');
+          return;
+        }
+      }
+    })();
+
     // If not logged in and not in (auth) group, redirect to login
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login');
-    }
-    // If logged in but not verified and not in (auth), redirect to verify-email
-    else if (user && !user.emailVerified && !inAuthGroup) {
-      router.replace('/(auth)/verify-email');
     }
     // If logged in and verified but in (auth), redirect to main app
     else if (user && user.emailVerified && inAuthGroup) {

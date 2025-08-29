@@ -18,8 +18,9 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sloorjuice.structura",
-      "buildNumber": "1"
+      "bundleIdentifier": "com.dirtyattic.structura",
+      "buildNumber": "1",
+      "appleTeamId": "YHX836X3WR"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +28,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.sloorjuice.structura",
+      "package": "com.dirtyattic.structura",
       "versionCode": 1
     },
     "web": {

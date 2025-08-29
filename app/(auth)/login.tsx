@@ -7,6 +7,7 @@ import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -103,11 +104,10 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Ionicons 
-            name="shield-checkmark" 
-            size={64} 
-            color={theme.colors.accent} 
+          <Image
+            source={require('@/assets/images/tree.png')}
             style={styles.logo}
+            resizeMode="contain"
           />
           <Text style={[styles.title, { color: theme.colors.text, ...theme.fonts.bold }]}>
             Welcome Back
@@ -278,7 +278,9 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    marginBottom: 16,
+    width: 128,
+    height: 128,
+    marginBottom: -16,
   },
   title: {
     fontSize: 28,
