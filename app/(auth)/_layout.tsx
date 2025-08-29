@@ -32,7 +32,6 @@ export default function AuthLayout() {
       <Stack.Screen name="register" options={{ title: 'Create Account' }} />
       <Stack.Screen name="daily-list-setup" options={{ title: 'Daily List Setup' }} /> {/* <-- Add this */}
       <Stack.Screen name="forgot-password" options={{ title: 'Reset Password' }} />
-      <Stack.Screen name="verify-email" options={{ title: 'Verify Email' }} />
     </Stack>
   );
 }
